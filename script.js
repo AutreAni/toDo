@@ -1,6 +1,9 @@
 function createInput(type, name, className){
     let input = document.createElement("input");
     input.type = type;
+    if(type === "text") {
+        input.maxLength = "40";
+    }
     type === "button" ? input.value = name: input.placeholder = name;
     input.className = className;
     return input;
@@ -16,7 +19,7 @@ function createWrapper(className, ...elems){
 
 
 window.onload = function(){
-    let search = createInput("search", "Search", "search");
+    let search = createInput("text", "Search", "search");
     search.addEventListener("keydown", (e)=> {
        if(e.code === "Enter") performSearch(e); 
     });
@@ -46,10 +49,13 @@ function performSearch(e) {
     contentsArr = clearMarks(contentsArr);
     let filtered = markSearchResult(contentsArr, target);
     handleSearchRes(filtered, input);
-    input.addEventListener("mousedown", clearSearchField);
+    input.onfocus = () => {
+        clearSearchField();
+    }
 }
 
 function clearMarks(arr) {
+    debugger;
     arr.forEach(elem => {
         let str = elem.innerHTML.replaceAll("<mark>", "").replaceAll("</mark>", "");
         elem.innerHTML = str;
@@ -80,18 +86,23 @@ function handleSearchRes(arr, input) {
         let searchResultBox = document.createElement("div");
         searchResultBox.className = "searchResultBox";
         arr.forEach(elem => searchResultBox.append(elem));
-        document.querySelector(".search__wrapper").append(searchResultBox);
+        if(!document.querySelector(".searchResultBox")){
+         document.querySelector(".search__wrapper").append(searchResultBox);
+        }
     }
 }
 
 function addMessage(input){
     let p = document.createElement("p");
-    p.innerHTML = "No match. Would you like to add a new list?";
+    p.innerHTML = `No match for <span class = "marked">`+ input.value+ `</span>. Would you like to add a new list?`;
     let span = createSpan("+")
     span.className = "message__add__span";
-    span.addEventListener("click", ()=> createListItem(input));
-
     let message__wrapper = createWrapper("message__wrapper", p, span);
+    span.addEventListener("click", ()=> {
+                                        createListItem(input);
+                                        input.value = ""
+                                        message__wrapper.remove()
+                                    });
     return message__wrapper;
 }
 
@@ -108,13 +119,20 @@ function clearSearchField(){
 
 function addTask(e){
     let add__task__wrapper = e.target.closest(".add__task__wrapper");
-    if(add__task__wrapper.querySelector("input[type = textarea]")){
-        handleNewInput(add__task__wrapper.querySelector("input[type = textarea]"));
+    let add__task__input = add__task__wrapper.querySelector("textarea");
+    if(add__task__input){
+        handleNewInput(add__task__input);
     }else{
-        let add__task__input = createInput('textarea', "Textarea","textarea");
+        add__task__input = document.createElement("textarea");
         add__task__wrapper.append(add__task__input);
         add__task__input.focus();
     }
+    add__task__input.addEventListener("keydown", (e)=> {
+        if(e.code === "Enter") {
+          createListItem(add__task__input);
+          add__task__input.remove();
+         } 
+      });
 }
 
 
@@ -129,10 +147,11 @@ function handleNewInput(input){
 
 
 function createListItem(input){
+    if(!input.value.length) return;
     let content = convertToDiv(input);
     let index = assignIndex();
     let editBtn = createSpan("Edit");
-    let removeBtn = createSpan("X")
+    let removeBtn = createSpan("x")
     let span__wrapper = createWrapper('span__wrapper', editBtn, removeBtn);
     span__wrapper.addEventListener("click", handleChange);
     let list__items__wrapper = createWrapper("list__items__wrapper", index, content, span__wrapper);
@@ -162,7 +181,7 @@ function createSpan(str){
 function assignIndex(){
     let list__wrapper = document.body.querySelector(".list__wrapper");
     let index = document.createElement("p");
-    index.innerHTML = list__wrapper.children.length + 1;
+    index.innerHTML = list__wrapper.children.length + 1 + ".";
     return index;
 }
 
@@ -170,26 +189,27 @@ function updateIndex(){
     let childDivs = document.body.querySelectorAll(".list__items__wrapper");
     childDivs.forEach(function(div,index){
         let num = div.querySelector("p");
-        num.innerHTML = index + 1;
+        num.innerHTML = index + 1 + ".";
     });
 }
 
 function convertToTextarea(e){
     let textarea = document.createElement("textarea");
+    textarea.spellCheck = "false";
     let div = e.target.closest(".list__items__wrapper").querySelector(".content");
     if(!div) return;
     textarea.value = div.innerHTML;
-    textarea.addEventListener("mousedown", ()=> removeErrorMessage(textarea));
-    let saveBtn = createSaveBtn(textarea);
+    textarea.addEventListener("focus", ()=> removeErrorMessage(textarea));
+    let saveBtn = createSpan("Save");
+    saveBtn.className = "saveBtn";
+    textarea.addEventListener("keydown", (e) =>{
+        if(e.code === "Enter") updateContent(textarea)
+    })
+    saveBtn.addEventListener("click", ()=> updateContent(textarea));
     let textarea__wrapper = createWrapper("textarea__wrapper", textarea, saveBtn);
     div.replaceWith(textarea__wrapper);
 }
 
-function createSaveBtn(input){
-    let saveBtn = createInput("button", "Save", "save__btn");
-    saveBtn.addEventListener("click", ()=> updateContent(input));
-    return saveBtn;
-}
 
 function updateContent(input){
     let content = convertToDiv(input);
