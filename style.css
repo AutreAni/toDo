@@ -1,0 +1,81 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+.container {
+    width:50%;
+    margin:0 auto;
+}
+
+input,
+.toDo__list {
+    margin:0;
+    padding: 0;
+    width:100%;
+}
+
+.search__wrapper,
+.add__task__wrapper,
+.list__wrapper {
+    position: relative;
+    width: 100%;
+    margin-top:2em;
+}
+
+.search,
+.add__task {
+    padding:0.5em 1em;
+}
+
+.search {
+    margin-top: 0;
+}
+
+
+i {
+    content: attr(data-icon);
+    position: absolute;
+    top:50%;
+    right:1em;
+    transform: translateY(-50%);
+    color:gray;
+    font-size: 0.8em;
+    z-index:9;
+}
+
+.list__items__wrapper {
+    display:flex;
+    justify-content: space-around;
+    align-items: baseline
+    ;
+}
+
+.span__wrapper {
+    display:flex;
+    justify-content: space-around;
+    align-items: baseline;
+}
+
+.textarea__wrapper {
+    position: relative;
+}
+
+.save__btn {
+    position: absolute;
+    top:0;
+    right:0;
+    width:20%;
+    height:20%;
+}
+
+.marked {
+    color:inherit;
+}
+
+.list__wrapper {
+    overflow-y: scroll;
+}
