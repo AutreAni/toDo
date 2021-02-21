@@ -1,11 +1,10 @@
 function createInput(type, name, className){
     let input = document.createElement("input");
     input.type = type;
-    type === "button" ? input.value = name:input.placeholder  = name;
+    type === "button" ? input.value = name: input.placeholder = name;
     input.className = className;
     return input;
 }
-
 
 
 function createWrapper(className, ...elems){
@@ -18,10 +17,12 @@ function createWrapper(className, ...elems){
 
 window.onload = function(){
     let search = createInput("search", "Search", "search");
+    search.addEventListener("keydown", (e)=> {
+       if(e.code === "Enter") performSearch(e); 
+    });
     let icon = document.createElement("i");
     icon.className = "fas fa-search";
-    icon.addEventListener("click", performSearch)
-
+    icon.addEventListener("click", performSearch);
     let search__wrapper = createWrapper("search__wrapper", search);
     search__wrapper.append(icon);
 
@@ -38,121 +39,81 @@ window.onload = function(){
 
 function performSearch(e) {
     let input = e.target.closest(".search__wrapper").querySelector('input');
-    if(!input) return;
-    let contents = document.body.querySelectorAll(".content");
-    let clones = [];
-    [...contents].forEach((content, index) => content.id = index);
-    [...contents].forEach(content => clones.push(content.cloneNode(true)));
-    clones.forEach((clone,index) => {
-        clone.addEventListener("click", function(){
-            document.getElementById(`${index}`).scrollIntoView(true);
-            clone.remove();
-        })
-    })
-
+    if(!input || !input.value.length) return;
+    let contentsArr = [...document.body.querySelectorAll(".content")];
+    if(!contentsArr.length) return;
     let target = input.value;
-    let filtered = clones.filter( content => {
-        let str =content.innerHTML;
-        if(str.includes("<mark>") || str.includes("</mark>")){
-            let newStr = str.replaceAll("<mark>", "").replaceAll("</mark>", "")
-            str = content.innerHTML = newStr;
-        }
-       
+    contentsArr = clearMarks(contentsArr);
+    let filtered = markSearchResult(contentsArr, target);
+    handleSearchRes(filtered, input);
+    input.addEventListener("mousedown", clearSearchField);
+}
+
+function clearMarks(arr) {
+    arr.forEach(elem => {
+        let str = elem.innerHTML.replaceAll("<mark>", "").replaceAll("</mark>", "");
+        elem.innerHTML = str;
+   });
+    return arr;
+}
+
+function markSearchResult(arr, target) {
+    let filtered = []
+    arr.forEach(elem => {
+        let str = elem.innerHTML;
         if(str.includes(target)){   
-            let newStr = str.replaceAll(`${target}`, `<mark>${target}</mark>`);
-            content.innerHTML = newStr;
-            return content;
+            let markedStr = str.replaceAll(`${target}`, `<mark>${target}</mark>`);
+            elem.innerHTML = markedStr;
+            clone = elem.cloneNode(true);
+            clone.addEventListener("click", ()=>elem.scrollIntoView(true));
+            filtered.push(clone);
         }
-            
-     });
-     console.log(filtered);
-     if(!filtered.length) {
-       addMessage(input);
-     }else{
-         filtered.forEach(div => document.querySelector(".search__wrapper").append(div))
-     }
-     input.addEventListener("mousedown", function(){
-         if(document.querySelector(".message__wrapper")){
-         document.querySelector(".message__wrapper").remove();
-         }
-     });
+    });
+    return filtered;
+}
+
+function handleSearchRes(arr, input) {
+    if(!arr.length) {
+        let message__box = addMessage(input);
+        document.querySelector(".search__wrapper").append(message__box);
+    }else {
+        let searchResultBox = document.createElement("div");
+        searchResultBox.className = "searchResultBox";
+        arr.forEach(elem => searchResultBox.append(elem));
+        document.querySelector(".search__wrapper").append(searchResultBox);
+    }
 }
 
 function addMessage(input){
     let p = document.createElement("p");
     p.innerHTML = "No match. Would you like to add a new list?";
-    let span = document.createElement("span");
-    span.innerHTML = "+";
+    let span = createSpan("+")
     span.className = "message__add__span";
-    let message__wrapper = createWrapper("message__wrapper", p, span);
-    document.querySelector(".search__wrapper").append(message__wrapper);
     span.addEventListener("click", ()=> createListItem(input));
+
+    let message__wrapper = createWrapper("message__wrapper", p, span);
+    return message__wrapper;
 }
 
-// function markSearchResult(str, target) {
-//     let indexArr = [];
-//     let pos = -1;
-//     let start = 0;
-//     while ((pos = str.indexOf(target, pos + 1)) != -1) {
-//       indexArr.push(pos);
-//     }
-//     if(indexArr){
-//         console.log(indexArr);
-//         let length = target.length
-//         let stringArr = [];
-//         indexArr.forEach(index => {
-//             let substr = str.slice(start, index);
-//             console.log(substr,index, length);
-//             let searchRes = str.substr(index, length);
-//             console.log(searchRes);
-//             let marked = `<mark>${searchRes}</mark>`;
-//             console.log(marked);
-//             stringArr.push(substr,marked);
-//             start = index + length;
-//             console.log(stringArr);
-//         });
-//         if(start < str.length) {
-//             stringArr.push(str.slice(start, str.length));
-//         }
-//         return [...stringArr].join("");
-//     }
-
-// }
-
-// function clearSearchResult(str, target){
-//     let indexArr = [];
-//     let stringArr = [];
-//     let pos = -1;
-//     let start = 0;
-//     while ((pos = str.indexOf(target, pos + 1)) != -1) {
-//         indexArr.push(pos);
-//     }
-//     console.log(indexArr);
-//     if(indexArr){ 
-//         indexArr.forEach(index => {
-//           let subStr = str.slice(start, index);
-//           stringArr.push(subStr);
-//           start = index + target.length;
-//         });
-//         if(start < str.length){
-//             stringArr.push(str.slice(start, str.length))
-//         }
-       
-//       return [...stringArr].join("");
-      
-//     }
-
-// }
+function clearSearchField(){
+    if(document.querySelector(".message__wrapper")){
+      document.querySelector(".message__wrapper").remove();
+    }
+    if(document.querySelector(".searchResultBox")){
+      document.querySelector(".searchResultBox").remove();
+    }
+  
+}
 
 
- function addTask(e){
+function addTask(e){
     let add__task__wrapper = e.target.closest(".add__task__wrapper");
     if(add__task__wrapper.querySelector("input[type = textarea]")){
         handleNewInput(add__task__wrapper.querySelector("input[type = textarea]"));
     }else{
-      let add__task__input = createInput('textarea', "Textarea","textarea");
-      add__task__wrapper.append(add__task__input);
-      add__task__input.focus();
+        let add__task__input = createInput('textarea', "Textarea","textarea");
+        add__task__wrapper.append(add__task__input);
+        add__task__input.focus();
     }
 }
 
@@ -170,8 +131,8 @@ function handleNewInput(input){
 function createListItem(input){
     let content = convertToDiv(input);
     let index = assignIndex();
-    let editBtn = createEditBtn();
-    let removeBtn = createRemoveBtn()
+    let editBtn = createSpan("Edit");
+    let removeBtn = createSpan("X")
     let span__wrapper = createWrapper('span__wrapper', editBtn, removeBtn);
     span__wrapper.addEventListener("click", handleChange);
     let list__items__wrapper = createWrapper("list__items__wrapper", index, content, span__wrapper);
@@ -192,16 +153,10 @@ function convertToDiv(textarea){
     return content;
 }
 
-function createEditBtn(){
-    let edit = document.createElement("span");
-    edit.innerHTML = "Edit"
-    return edit;
-}
-
-function createRemoveBtn(){
-    let remove = document.createElement("span");
-    remove.innerHTML = "X";
-    return remove;
+function createSpan(str){
+    let span = document.createElement("span");
+    span.innerHTML = str;
+    return span;
 }
 
 function assignIndex(){
@@ -224,6 +179,7 @@ function convertToTextarea(e){
     let div = e.target.closest(".list__items__wrapper").querySelector(".content");
     if(!div) return;
     textarea.value = div.innerHTML;
+    textarea.addEventListener("mousedown", ()=> removeErrorMessage(textarea));
     let saveBtn = createSaveBtn(textarea);
     let textarea__wrapper = createWrapper("textarea__wrapper", textarea, saveBtn);
     div.replaceWith(textarea__wrapper);
@@ -238,15 +194,28 @@ function createSaveBtn(input){
 function updateContent(input){
     let content = convertToDiv(input);
     if(input.value.length){
-    input.parentNode.replaceWith(content);
+      input.parentNode.replaceWith(content);
+    }else{
+       appendErrorMessage(input);
+    }
+}
+
+function appendErrorMessage(input) {
+    let p = document.createElement("p");
+    p.innerHTML = "*Field can not be empty";
+    p.className = "error__msg";
+    input.parentNode.append(p);
+}
+
+function removeErrorMessage(input) {
+    if(input.parentNode.querySelector(".error__msg")){
+        input.parentNode.querySelector(".error__msg").remove();
     }
 }
 
 
 function removeList(e){
     let list = e.target.closest(".list__items__wrapper")
-    let content = list.querySelector('.content');
-    if(!content) return; 
     list.remove();
     let list__wrapper = document.body.querySelector(".list__wrapper");
     if(list__wrapper.children.length){
