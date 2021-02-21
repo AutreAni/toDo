@@ -4,7 +4,6 @@
 
 body {
     margin: 0;
-    padding: 0;
     width:100%;
     height:100vh;
     font-family: Arial, Helvetica, sans-serif;
@@ -36,29 +35,22 @@ body {
     z-index:999;
 }
 
-input[type = text],
-input[type = button],
-.toDo__list {
+input,
+button {
     width:100%;
     border:none;
+    outline: none;
 }
-input {
+
+div {
     outline: none;
 }
 
 .search__wrapper,
-.add__task__wrapper {
+.add__task__wrapper,
+.list__wrapper {
     width: 100%;
     height: 20%;
-}
-
-.add__task__wrapper {
-    padding-top: 2%;
-}
-.add__task {
-    height:45%;
-    padding: 0 10%;
-    color:#666;
 }
 
 .search {
@@ -67,15 +59,19 @@ input {
     padding: 0 10%;
 }
 
+.search:hover {
+    background: #f2f2f2;
+    color:#666;
+ }
+
 i {
     content: attr(data-icon);
     position: absolute;
     top:20%;
-    right:1em;
+    right:10%;
     transform: translateY(-50%);
     color:#666;
-    font-size: 0.8em;
-    z-index:9;
+    font-size: 0.7em;
 }
 
 i:hover {
@@ -84,18 +80,21 @@ i:hover {
 
 .message__wrapper {
     width:100%;
-    padding:0 10%;
+    padding:3% 10%;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    background-color: white;
+    color:#666;
+    border-top: 1px solid #f2f2f2;
 }
-.search__wrapper p {
+.message__wrapper p {
     font-size: 0.7em;
     margin:0.2em;
     word-break: break-word;
 }
+
 .search__wrapper .marked {
-    word-break:break-all
+    word-break:break-all;
 }
 
 .searchResultBox {
@@ -108,13 +107,14 @@ i:hover {
     overflow-y: auto;
     font-size: 0.7em;
     color:#666;
+    word-break: break-all;
 }
 .searchResultBox > div {
     position: relative;
     padding-top: 0.5em;
 }
 
-.searchResultBox > div ::before {
+.searchResultBox > div::before {
     position: absolute;
     z-index:9999;
     top:0.6em;
@@ -128,43 +128,42 @@ i:hover {
 }
 
 
-.search:hover {
-   background: #f2f2f2;
-   color:#666;
+.add__task__wrapper {
+    padding-top: 2%;
 }
 
-.add__task__wrapper input[type = button] {
-    background-color: white;
+.add__task {
+    height:48%;
+    padding: 0 10%;
+    color:#666;
 }
-.add__task__wrapper input[type = button]:hover {
+
+.editable {
+    max-height:50%;
+    overflow-y:auto;
+    width:100%;
+    padding:2% 10%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.8em;
+    outline: none;
+    color:#666;
+    background-color: white;
+    border-top: 1px solid #f2f2f2;
+}
+
+.add__task__wrapper button {
+    background-color: white;
+    outline: none;
+}
+.add__task__wrapper button:hover {
     background-color: #f2f2f2;
     color:orange;
 }
 
-textarea {
-    padding:2% 10%;
-    font-family: Arial, Helvetica, sans-serif;
-    border:none;
-    outline: none;
-    font-size: 0.8em;
-    color:#666;
-    resize: none;
-}
-
-.add__task__wrapper textarea{
-    width:100%;
-    height:45%;
-    position: absolute;
-    top:50%;
-    left:0;   
-    border-top: 1px solid #f2f2f2;
-}
-
 .list__wrapper {
     height:60%;
-    padding-top: 5%;
     overflow-y: auto;
-    overflow-x: hidden;
+    padding-bottom:5%;
 }
 
 mark {
@@ -176,6 +175,7 @@ mark {
 .list__items__wrapper {
     display:flex;
     justify-content: flex-start;
+    align-items: flex-end;
     width:100%;
     border-bottom:1px solid #666;
     font-size: 0.7em;
@@ -189,39 +189,20 @@ mark {
     text-align: center;
 }
 
-.list__items__wrapper .content {
+.list__items__wrapper div.content {
     width:70%;
     word-break: break-word;
+    position: relative;
 }
 
 .list__items__wrapper .span__wrapper {
     display:flex;
     justify-content: space-around;
-    /* align-items: baseline; */
     width:20%;
 }
+
 .list__items__wrapper .span__wrapper span:hover {
     color:orange;
-}
-
-.textarea__wrapper {
-    position: relative;
-    width:70%;
-}
-.list__items__wrapper textarea {
-    width:100%;
-    height: 100%;
-    padding:2% 2%;
-}
-
-.list__items__wrapper .saveBtn {
-    position: absolute;
-    top:0;
-    right:0;
-    font-size: 0.5em;
-    color:orange;
-    background-color: #f2f2f2;
-    padding:0.5em;
 }
 
 .marked {

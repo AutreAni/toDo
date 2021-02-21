@@ -1,16 +1,4 @@
-function createInput(type, name, className){
-    let input = document.createElement("input");
-    input.type = type;
-    if(type === "text") {
-        input.maxLength = "40";
-    }
-    type === "button" ? input.value = name: input.placeholder = name;
-    input.className = className;
-    return input;
-}
-
-
-function createWrapper(className, ...elems){
+function createDiv(className, ...elems){
     let div = document.createElement("div");
     div.className = className;
     if(elems) elems.forEach(elem => div.append(elem));
@@ -19,29 +7,35 @@ function createWrapper(className, ...elems){
 
 
 window.onload = function(){
-    let search = createInput("text", "Search", "search");
+    let search = document.createElement("input");
+    search.type = "text";
+    search.maxLength = "40";
+    search.placeholder = "Search...";
+    search.className = "search"
     search.addEventListener("keydown", (e)=> {
-       if(e.code === "Enter") performSearch(e); 
+       if(e.code === "Enter") performSearch(); 
     });
     let icon = document.createElement("i");
     icon.className = "fas fa-search";
     icon.addEventListener("click", performSearch);
-    let search__wrapper = createWrapper("search__wrapper", search);
-    search__wrapper.append(icon);
+    let search__wrapper = createDiv("search__wrapper", search, icon);
 
 
-    let add__task = createInput("button", "Add new task", "add__task");
-    let add__task__wrapper = createWrapper("add__task__wrapper", add__task);
+    let add__task = document.createElement("button");
+    add__task.innerHTML = "Add New Task";
+    add__task.className = "add__task";
+    let add__task__wrapper = createDiv("add__task__wrapper", add__task);
     add__task__wrapper.addEventListener("click", addTask);
-    let list__wrapper = createWrapper("list__wrapper");
-    let container = createWrapper("container");
+
+    let list__wrapper = createDiv("list__wrapper");
+    let container = createDiv("container");
     container.append(search__wrapper, add__task__wrapper, list__wrapper);
     document.body.append(container);
 }
 
 
-function performSearch(e) {
-    let input = e.target.closest(".search__wrapper").querySelector('input');
+function performSearch() {
+    let input = document.querySelector('.search');
     if(!input || !input.value.length) return;
     let contentsArr = [...document.body.querySelectorAll(".content")];
     if(!contentsArr.length) return;
@@ -55,7 +49,6 @@ function performSearch(e) {
 }
 
 function clearMarks(arr) {
-    debugger;
     arr.forEach(elem => {
         let str = elem.innerHTML.replaceAll("<mark>", "").replaceAll("</mark>", "");
         elem.innerHTML = str;
@@ -83,9 +76,7 @@ function handleSearchRes(arr, input) {
         let message__box = addMessage(input);
         document.querySelector(".search__wrapper").append(message__box);
     }else {
-        let searchResultBox = document.createElement("div");
-        searchResultBox.className = "searchResultBox";
-        arr.forEach(elem => searchResultBox.append(elem));
+        let searchResultBox = createDiv("searchResultBox", ...arr)
         if(!document.querySelector(".searchResultBox")){
          document.querySelector(".search__wrapper").append(searchResultBox);
         }
@@ -94,14 +85,17 @@ function handleSearchRes(arr, input) {
 
 function addMessage(input){
     let p = document.createElement("p");
-    p.innerHTML = `No match for <span class = "marked">`+ input.value+ `</span>. Would you like to add a new list?`;
-    let span = createSpan("+")
+    let str = `No match for <span class = "marked">${input.value}</span>. Would you like to add a new list?`;
+    p.innerHTML = str;
+    let span = createSpan("+");
     span.className = "message__add__span";
-    let message__wrapper = createWrapper("message__wrapper", p, span);
+    let message__wrapper = createDiv("message__wrapper", p, span);
     span.addEventListener("click", ()=> {
-                                        createListItem(input);
+                                        createListItem(input.value);
                                         input.value = ""
-                                        message__wrapper.remove()
+                                        message__wrapper.remove();
+                                       let arr = document.querySelectorAll(".content");
+                                       arr[arr.length-1].scrollIntoView(true);
                                     });
     return message__wrapper;
 }
@@ -117,44 +111,50 @@ function clearSearchField(){
 }
 
 
-function addTask(e){
-    let add__task__wrapper = e.target.closest(".add__task__wrapper");
-    let add__task__input = add__task__wrapper.querySelector("textarea");
-    if(add__task__input){
-        handleNewInput(add__task__input);
+function addTask(){
+    let editable = document.querySelector(".editable");
+    if(editable){
+        handleInput(editable);
     }else{
-        add__task__input = document.createElement("textarea");
-        add__task__wrapper.append(add__task__input);
-        add__task__input.focus();
-    }
-    add__task__input.addEventListener("keydown", (e)=> {
-        if(e.code === "Enter") {
-          createListItem(add__task__input);
-          add__task__input.remove();
-         } 
-      });
+        createEditableDiv();        
+    } 
+}
+
+function createEditableDiv(){
+    let editable = createDiv("editable");
+    editable.contentEditable = "true";  
+    document.querySelector(".add__task__wrapper").append(editable);
+    editable.focus();
+    editable.addEventListener("keydown", (e)=>{
+        if(e.code === "Enter"){
+            editable.contentEditable = "false";
+            createListItem(editable.innerHTML);
+            editable.remove();
+        }
+    });
 }
 
 
-function handleNewInput(input){
-    if(!input.value.length){
-        input.remove();
+function handleInput(elem){
+    if(!elem.innerHTML.length){
+        elem.remove();
         return;
     }
-    createListItem(input);
-    input.remove();
+    createListItem(elem.innerHTML);
+    elem.remove();
 }
 
 
 function createListItem(input){
-    if(!input.value.length) return;
-    let content = convertToDiv(input);
+    if(!input.length) return;
+    let content = createDiv("content");
+    content.innerHTML = input;
     let index = assignIndex();
     let editBtn = createSpan("Edit");
-    let removeBtn = createSpan("x")
-    let span__wrapper = createWrapper('span__wrapper', editBtn, removeBtn);
+    let removeBtn = createSpan("x");
+    let span__wrapper = createDiv('span__wrapper', editBtn, removeBtn);
     span__wrapper.addEventListener("click", handleChange);
-    let list__items__wrapper = createWrapper("list__items__wrapper", index, content, span__wrapper);
+    let list__items__wrapper = createDiv("list__items__wrapper", index, content, span__wrapper);
     let list__wrapper = document.body.querySelector(".list__wrapper")
     list__wrapper.append(list__items__wrapper);
 }
@@ -162,15 +162,9 @@ function createListItem(input){
 function handleChange(e){
     let target = e.target;
     if(target.tagName !== "SPAN") return;
-    target.innerHTML === "Edit"? convertToTextarea (e) : removeList (e);
+    target.innerHTML === "Edit"? enableChange(e) : removeList(e);
 }
 
-
-function convertToDiv(textarea){
-    let content = createWrapper("content");
-    content.innerHTML = textarea.value;
-    return content;
-}
 
 function createSpan(str){
     let span = document.createElement("span");
@@ -193,46 +187,38 @@ function updateIndex(){
     });
 }
 
-function convertToTextarea(e){
-    let textarea = document.createElement("textarea");
-    textarea.spellCheck = "false";
-    let div = e.target.closest(".list__items__wrapper").querySelector(".content");
-    if(!div) return;
-    textarea.value = div.innerHTML;
-    textarea.addEventListener("focus", ()=> removeErrorMessage(textarea));
-    let saveBtn = createSpan("Save");
-    saveBtn.className = "saveBtn";
-    textarea.addEventListener("keydown", (e) =>{
-        if(e.code === "Enter") updateContent(textarea)
+function enableChange(e){
+    let parent = e.target.closest(".list__items__wrapper");
+    let target = parent.querySelector("div");
+    if(target.querySelector(".error__msg")){
+        target.querySelector(".error__msg").remove();
+    }
+    target.contentEditable = "true";
+    target.focus();
+    target.addEventListener("keydown", (e) =>{
+        if(e.code === "Enter") disableEdit(target);
     })
-    saveBtn.addEventListener("click", ()=> updateContent(textarea));
-    let textarea__wrapper = createWrapper("textarea__wrapper", textarea, saveBtn);
-    div.replaceWith(textarea__wrapper);
 }
 
-
-function updateContent(input){
-    let content = convertToDiv(input);
-    if(input.value.length){
-      input.parentNode.replaceWith(content);
-    }else{
-       appendErrorMessage(input);
+function disableEdit(elem){
+    elem.contentEditable = "false";
+    if(!elem.innerHTML.length) {
+        let error = createErrorMessage();
+        elem.append(error);
+        elem.contentEditable = "true";
+        elem.addEventListener("focus", ()=> {
+            error.remove();
+            elem.focus();
+        })
     }
 }
 
-function appendErrorMessage(input) {
+function createErrorMessage() {
     let p = document.createElement("p");
     p.innerHTML = "*Field can not be empty";
     p.className = "error__msg";
-    input.parentNode.append(p);
+    return p;
 }
-
-function removeErrorMessage(input) {
-    if(input.parentNode.querySelector(".error__msg")){
-        input.parentNode.querySelector(".error__msg").remove();
-    }
-}
-
 
 function removeList(e){
     let list = e.target.closest(".list__items__wrapper")
